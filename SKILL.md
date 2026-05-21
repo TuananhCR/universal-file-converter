@@ -1,447 +1,414 @@
 ---
 name: universal-file-converter
 description: >
-  Chuyển đổi file giữa tất cả các định dạng phổ biến. Sử dụng skill này khi người dùng yêu cầu
-  convert, chuyển đổi, export, xuất file từ bất kỳ định dạng nào sang định dạng khác.
-  Hỗ trợ: Markdown (md), DOCX, PDF, HTML, TXT, LaTeX, EPUB, RST, ODT, PPTX, XLSX, CSV, JSON, YAML, XML,
-  PNG, JPG, SVG, WEBP. Bao gồm chuyển đổi tài liệu, dữ liệu, và hình ảnh.
-  Use when user says: "chuyển đổi file", "convert file", "xuất ra pdf", "đổi sang docx",
-  "markdown to word", "pdf to markdown", "csv to json", "chuyển định dạng", "export as".
-version: 1.0.0
+  Chuyển đổi file giữa tất cả các định dạng phổ biến TRỰC TIẾP trong chat, KHÔNG cần sandbox hay tool bên ngoài.
+  Sử dụng skill này khi người dùng yêu cầu convert, chuyển đổi, export, xuất file từ bất kỳ định dạng nào
+  sang định dạng khác. AI sẽ đọc nội dung file đã được trích xuất và tự format lại sang định dạng đích.
+  Hỗ trợ: Markdown (md), DOCX, PDF, HTML, TXT, LaTeX, CSV, JSON, YAML, XML, RST, EPUB.
+  Use when user says: "chuyển đổi file", "convert file", "xuất ra", "đổi sang", "chuyển sang md",
+  "markdown to html", "pdf to markdown", "csv to json", "chuyển định dạng", "export as", "sang docx".
+version: 2.0.0
 author: ThoThan-AI
 tags:
   - file-conversion
   - document-converter
-  - pandoc
-  - pdf
-  - markdown
-  - docx
   - format-converter
+  - no-sandbox
 ---
 
-# 🔄 Universal File Converter
+# 🔄 Universal File Converter (No-Sandbox)
 
-Skill chuyển đổi file đa năng — một skill duy nhất xử lý tất cả các chuyển đổi định dạng file.
+Skill chuyển đổi file đa năng — AI tự xử lý trực tiếp, KHÔNG cần sandbox, KHÔNG cần tool bên ngoài.
+
+## Nguyên Tắc Cốt Lõi
+
+**QUAN TRỌNG: KHÔNG sử dụng sandbox, KHÔNG chạy lệnh shell, KHÔNG gọi Python script.**
+
+AI sẽ:
+1. Đọc nội dung file đã được trích xuất từ file đính kèm (system context / file tags)
+2. Tự xử lý và format lại nội dung sang định dạng đích
+3. Xuất kết quả trực tiếp dưới dạng file hoặc code block để người dùng copy/download
 
 ## Khi Nào Sử Dụng
 
-Sử dụng skill này khi người dùng yêu cầu:
-- Chuyển đổi file từ định dạng này sang định dạng khác
-- Export/xuất tài liệu sang định dạng khác
-- Convert giữa các format: MD, DOCX, PDF, HTML, TXT, CSV, JSON, YAML, EPUB, LaTeX, PPTX, XLSX, hình ảnh...
-- Batch convert (chuyển đổi hàng loạt nhiều file)
-
-## Bảng Chuyển Đổi Hỗ Trợ
-
-### Tài liệu (Document Conversions)
-
-| Từ ↓ \ Sang → | MD | DOCX | PDF | HTML | TXT | LaTeX | EPUB | RST | ODT |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Markdown** | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **DOCX** | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **PDF** | ✅* | ✅* | — | ✅* | ✅ | ✗ | ✗ | ✗ | ✗ |
-| **HTML** | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **TXT** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✗ | ✅ | ✅ |
-| **LaTeX** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ |
-| **EPUB** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ |
-| **RST** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **ODT** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-
-> ✅* = PDF input cần `pdftotext` hoặc xử lý đặc biệt (xem mục PDF bên dưới)
-
-### Dữ liệu (Data Conversions)
-
-| Từ ↓ \ Sang → | CSV | JSON | YAML | XML | XLSX | TSV |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **CSV** | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **JSON** | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| **YAML** | ✅ | ✅ | — | ✅ | ✗ | ✅ |
-| **XML** | ✅ | ✅ | ✅ | — | ✗ | ✅ |
-| **XLSX** | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **TSV** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+Sử dụng skill này khi người dùng:
+- Upload file và yêu cầu chuyển sang định dạng khác
+- Yêu cầu export/xuất nội dung sang format khác
+- Paste nội dung text và muốn chuyển đổi format
+- Yêu cầu batch convert nội dung
 
 ## Quy Trình Chuyển Đổi
 
-### Bước 1: Xác định input/output
+### Bước 1: Xác định Input
+- Nội dung file đã được hệ thống trích xuất tự động khi user upload (trong `<file>` tags hoặc system context)
+- Hoặc nội dung text user paste trực tiếp trong chat
+- Xác định định dạng nguồn từ phần mở rộng file hoặc cấu trúc nội dung
 
-Xác định:
-- **File nguồn**: Đường dẫn file cần chuyển đổi
-- **Định dạng đích**: Format mong muốn
-- **Yêu cầu đặc biệt**: Styling, template, encoding, v.v.
+### Bước 2: Xác định Output
+- Hỏi rõ nếu user chưa chỉ định định dạng đích
+- Xác nhận yêu cầu đặc biệt (có mục lục không, styling, v.v.)
 
-### Bước 2: Kiểm tra công cụ
+### Bước 3: Chuyển đổi trực tiếp
+- AI tự xử lý text và format lại
+- Xuất kết quả trong code block hoặc tạo file artifact
+- KHÔNG bao giờ cần sandbox
 
-Kiểm tra Pandoc đã được cài đặt chưa:
-```bash
-pandoc --version
+## Hướng Dẫn Chuyển Đổi Theo Từng Loại
+
+---
+
+### 📄 PDF → Markdown
+
+Khi user upload PDF, hệ thống đã tự trích xuất text trong `<file>` tags. AI cần:
+
+1. Đọc toàn bộ text đã trích xuất từ các trang
+2. Phân tích cấu trúc: tiêu đề, đoạn văn, danh sách, bảng
+3. Format lại thành Markdown chuẩn:
+   - Tiêu đề lớn → `# Heading 1`
+   - Tiêu đề phụ → `## Heading 2`, `### Heading 3`
+   - Danh sách → `- item` hoặc `1. item`
+   - Bảng → Markdown table `| col1 | col2 |`
+   - In đậm → `**bold**`
+   - In nghiêng → `*italic*`
+   - Link → `[text](url)`
+   - Code → `` `code` `` hoặc code block
+4. Xuất kết quả trong code block ```markdown hoặc tạo file .md
+
+**Ví dụ output:**
+```markdown
+# Tiêu Đề Tài Liệu
+
+## Phần 1: Giới Thiệu
+
+Nội dung đoạn văn đầu tiên...
+
+### 1.1 Chi tiết
+
+- Mục 1
+- Mục 2
+
+| Cột A | Cột B | Cột C |
+|-------|-------|-------|
+| Data  | Data  | Data  |
 ```
 
-Nếu chưa có, hướng dẫn cài đặt:
-```bash
-# macOS
-brew install pandoc
+---
 
-# Ubuntu/Debian
-sudo apt-get install pandoc
+### 📄 PDF → HTML
 
-# Windows (Chocolatey)
-choco install pandoc
+1. Đọc text trích xuất từ PDF
+2. Format thành HTML5 hoàn chỉnh:
+
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tiêu đề tài liệu</title>
+</head>
+<body>
+    <h1>Tiêu đề</h1>
+    <p>Nội dung...</p>
+    <table>
+        <tr><th>Cột A</th><th>Cột B</th></tr>
+        <tr><td>Data</td><td>Data</td></tr>
+    </table>
+</body>
+</html>
 ```
 
-Cho xuất PDF, cần thêm LaTeX engine:
-```bash
-# macOS
-brew install --cask mactex
-# hoặc bản nhẹ:
-brew install basictex
+---
 
-# Ubuntu/Debian
-sudo apt-get install texlive-xetex texlive-fonts-recommended
+### 📄 PDF → TXT
+
+1. Đọc text trích xuất từ PDF
+2. Loại bỏ mọi formatting, giữ lại plain text
+3. Giữ nguyên line breaks và spacing hợp lý
+4. Xuất trong code block
+
+---
+
+### 📝 Markdown → HTML
+
+Chuyển đổi trực tiếp theo mapping:
+
+| Markdown | HTML |
+|----------|------|
+| `# Heading` | `<h1>Heading</h1>` |
+| `## Heading` | `<h2>Heading</h2>` |
+| `**bold**` | `<strong>bold</strong>` |
+| `*italic*` | `<em>italic</em>` |
+| `- item` | `<ul><li>item</li></ul>` |
+| `1. item` | `<ol><li>item</li></ol>` |
+| `[text](url)` | `<a href="url">text</a>` |
+| `` `code` `` | `<code>code</code>` |
+| `> quote` | `<blockquote>quote</blockquote>` |
+| `![alt](src)` | `<img src="src" alt="alt">` |
+| `| table |` | `<table>...</table>` |
+
+Wrap trong HTML5 template đầy đủ với `<head>`, charset UTF-8, và CSS cơ bản.
+
+---
+
+### 📝 Markdown → LaTeX
+
+Chuyển đổi trực tiếp:
+
+| Markdown | LaTeX |
+|----------|-------|
+| `# Heading` | `\section{Heading}` |
+| `## Heading` | `\subsection{Heading}` |
+| `### Heading` | `\subsubsection{Heading}` |
+| `**bold**` | `\textbf{bold}` |
+| `*italic*` | `\textit{italic}` |
+| `- item` | `\begin{itemize}\item ...\end{itemize}` |
+| `1. item` | `\begin{enumerate}\item ...\end{enumerate}` |
+| `[text](url)` | `\href{url}{text}` |
+| `` `code` `` | `\texttt{code}` |
+| code block | `\begin{verbatim}...\end{verbatim}` |
+| `> quote` | `\begin{quote}...\end{quote}` |
+
+Wrap trong LaTeX document class đầy đủ:
+```latex
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{hyperref}
+\begin{document}
+% nội dung ở đây
+\end{document}
 ```
 
-### Bước 3: Thực hiện chuyển đổi
+---
 
-## Lệnh Chuyển Đổi Chi Tiết
+### 📝 Markdown → RST (reStructuredText)
 
-### 📄 Document Conversions (dùng Pandoc)
+| Markdown | RST |
+|----------|-----|
+| `# Heading` | Heading + `=====` underline |
+| `## Heading` | Heading + `-----` underline |
+| `**bold**` | `**bold**` |
+| `*italic*` | `*italic*` |
+| `- item` | `* item` |
+| `[text](url)` | `` `text <url>`_ `` |
+| `` `code` `` | ` `` code `` ` |
 
-#### Markdown → DOCX
-```bash
-pandoc input.md -f gfm -t docx -o output.docx --standalone
+---
+
+### 📝 Markdown → TXT
+
+1. Loại bỏ tất cả Markdown syntax (`#`, `**`, `*`, `[]()`, etc.)
+2. Giữ lại plain text content
+3. Giữ line breaks và indent hợp lý
+
+---
+
+### 🌐 HTML → Markdown
+
+1. Parse cấu trúc HTML
+2. Chuyển ngược mapping HTML → Markdown (xem bảng ở mục Markdown → HTML)
+3. Loại bỏ các tags không có tương đương Markdown
+4. Giữ nội dung text
+
+---
+
+### 🌐 HTML → TXT
+
+1. Strip tất cả HTML tags
+2. Giữ lại text content
+3. Decode HTML entities (`&amp;` → `&`, `&lt;` → `<`, etc.)
+
+---
+
+### 📊 CSV → JSON
+
+Chuyển đổi trực tiếp:
+
+**Input CSV:**
+```csv
+name,age,city
+Alice,30,Hanoi
+Bob,25,HCMC
 ```
 
-#### Markdown → PDF
-```bash
-pandoc input.md -f gfm -o output.pdf --pdf-engine=xelatex -V mainfont="Arial" -V geometry:margin=2.5cm
+**Output JSON:**
+```json
+[
+  {"name": "Alice", "age": "30", "city": "Hanoi"},
+  {"name": "Bob", "age": "25", "city": "HCMC"}
+]
 ```
 
-#### Markdown → HTML
-```bash
-pandoc input.md -f gfm -t html5 -o output.html --standalone --metadata title="Document"
+Quy tắc:
+- Dòng đầu tiên = keys
+- Mỗi dòng sau = một object
+- Wrap trong array `[]`
+
+---
+
+### 📊 CSV → YAML
+
+**Input CSV:**
+```csv
+name,age,city
+Alice,30,Hanoi
 ```
 
-#### Markdown → EPUB
-```bash
-pandoc input.md -f gfm -t epub -o output.epub --metadata title="Book Title"
+**Output YAML:**
+```yaml
+- name: Alice
+  age: "30"
+  city: Hanoi
 ```
 
-#### Markdown → LaTeX
-```bash
-pandoc input.md -f gfm -t latex -o output.tex --standalone
+---
+
+### 📊 CSV → XML
+
+**Output XML:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+  <record>
+    <name>Alice</name>
+    <age>30</age>
+    <city>Hanoi</city>
+  </record>
+</data>
 ```
 
-#### Markdown → PowerPoint (PPTX)
-```bash
-pandoc input.md -f gfm -t pptx -o output.pptx
+---
+
+### 📊 CSV → HTML Table
+
+**Output:**
+```html
+<table>
+  <thead>
+    <tr><th>name</th><th>age</th><th>city</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Alice</td><td>30</td><td>Hanoi</td></tr>
+  </tbody>
+</table>
 ```
 
-#### DOCX → Markdown
-```bash
-pandoc input.docx -f docx -t gfm -o output.md --wrap=none --extract-media=./media
+---
+
+### 📊 CSV → Markdown Table
+
+**Output:**
+```markdown
+| name | age | city |
+|------|-----|------|
+| Alice | 30 | Hanoi |
 ```
 
-#### DOCX → PDF
-```bash
-pandoc input.docx -f docx -o output.pdf --pdf-engine=xelatex
-```
+---
 
-#### DOCX → HTML
-```bash
-pandoc input.docx -f docx -t html5 -o output.html --standalone --extract-media=./media
-```
+### 📊 JSON → CSV
 
-#### HTML → Markdown
-```bash
-pandoc input.html -f html -t gfm -o output.md --wrap=none
-```
+1. Nếu JSON là array of objects: keys = headers, values = rows
+2. Nếu JSON là nested: flatten hoặc hỏi user cách xử lý
 
-#### HTML → DOCX
-```bash
-pandoc input.html -f html -t docx -o output.docx --standalone
-```
+---
 
-#### HTML → PDF
-```bash
-pandoc input.html -f html -o output.pdf --pdf-engine=xelatex
-```
+### 📊 JSON → YAML
 
-#### EPUB → Markdown
-```bash
-pandoc input.epub -f epub -t gfm -o output.md --wrap=none
-```
+Chuyển đổi cú pháp trực tiếp:
+- `{}` → mapping
+- `[]` → sequence
+- `"key": "value"` → `key: value`
+- Bỏ dấu ngoặc, thêm indent
 
-#### EPUB → DOCX
-```bash
-pandoc input.epub -f epub -t docx -o output.docx
-```
+---
 
-#### LaTeX → PDF
-```bash
-pandoc input.tex -f latex -o output.pdf --pdf-engine=xelatex
-```
+### 📊 JSON → XML
 
-#### LaTeX → DOCX
-```bash
-pandoc input.tex -f latex -t docx -o output.docx
-```
+- Object → element
+- Array → repeated elements
+- Key → tag name
+- Value → text content
 
-#### RST → Markdown
-```bash
-pandoc input.rst -f rst -t gfm -o output.md
-```
+---
 
-#### ODT → Markdown
-```bash
-pandoc input.odt -f odt -t gfm -o output.md
-```
+### 📊 YAML → JSON
 
-#### ODT → DOCX
-```bash
-pandoc input.odt -f odt -t docx -o output.docx
-```
+Ngược lại với JSON → YAML:
+- mapping → `{}`
+- sequence → `[]`
+- `key: value` → `"key": "value"`
 
-#### TXT → DOCX
-```bash
-pandoc input.txt -f plain -t docx -o output.docx --standalone
-```
+---
 
-#### TXT → PDF
-```bash
-pandoc input.txt -f plain -o output.pdf --pdf-engine=xelatex
-```
+### 📊 XML → JSON
 
-### 📊 PDF Input (Xử lý đặc biệt)
+- Elements → keys
+- Text content → values
+- Attributes → `@attribute` keys
+- Repeated elements → arrays
 
-PDF là format chỉ đọc, cần tool riêng để trích xuất nội dung:
+---
 
-#### PDF → TXT (dùng pdftotext)
-```bash
-pdftotext input.pdf output.txt
-# Hoặc giữ layout:
-pdftotext -layout input.pdf output.txt
-```
+### 📊 TSV ↔ CSV
 
-#### PDF → Markdown (dùng Python)
-```python
-# Cài đặt: pip install pymupdf
-import fitz  # PyMuPDF
+- TSV dùng tab `\t` separator
+- CSV dùng comma `,` separator
+- Đổi delimiter trực tiếp
 
-doc = fitz.open("input.pdf")
-md_content = ""
-for page in doc:
-    md_content += page.get_text("text") + "\n\n---\n\n"
+---
 
-with open("output.md", "w", encoding="utf-8") as f:
-    f.write(md_content)
-```
+## Xử Lý Đặc Biệt
 
-#### PDF → DOCX (dùng Python)
-```python
-# Cài đặt: pip install pdf2docx
-from pdf2docx import Converter
+### Bảng biểu (Tables)
+- Nhận diện bảng từ PDF/text dựa trên alignment và spacing
+- Format thành Markdown table hoặc HTML table tùy output format
+- Giữ nguyên cấu trúc cột/hàng
 
-cv = Converter("input.pdf")
-cv.convert("output.docx")
-cv.close()
-```
+### Tiếng Việt
+- Luôn dùng encoding UTF-8
+- Giữ nguyên dấu tiếng Việt
+- Với LaTeX: thêm `\usepackage[vietnamese]{babel}`
 
-#### PDF → HTML (dùng Python)
-```python
-# Cài đặt: pip install pymupdf
-import fitz
+### File lớn
+- Nếu nội dung quá dài, chia thành nhiều phần
+- Thông báo cho user biết đang xử lý phần nào
+- Xuất từng phần hoặc tạo file artifact
 
-doc = fitz.open("input.pdf")
-html = "<html><body>"
-for page in doc:
-    html += page.get_text("html")
-html += "</body></html>"
-
-with open("output.html", "w", encoding="utf-8") as f:
-    f.write(html)
-```
-
-### 📊 Data Conversions (dùng Python)
-
-#### CSV → JSON
-```python
-import csv, json
-
-with open("input.csv", "r", encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    data = list(reader)
-
-with open("output.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
-```
-
-#### JSON → CSV
-```python
-import csv, json
-
-with open("input.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-if isinstance(data, list) and len(data) > 0:
-    with open("output.csv", "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=data[0].keys())
-        writer.writeheader()
-        writer.writerows(data)
-```
-
-#### JSON → YAML
-```python
-import json, yaml
-
-with open("input.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-with open("output.yaml", "w", encoding="utf-8") as f:
-    yaml.dump(data, f, allow_unicode=True, default_flow_style=False)
-```
-
-#### YAML → JSON
-```python
-import json, yaml
-
-with open("input.yaml", "r", encoding="utf-8") as f:
-    data = yaml.safe_load(f)
-
-with open("output.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
-```
-
-#### CSV → XLSX
-```python
-# Cài đặt: pip install openpyxl
-import csv
-from openpyxl import Workbook
-
-wb = Workbook()
-ws = wb.active
-with open("input.csv", "r", encoding="utf-8") as f:
-    for row in csv.reader(f):
-        ws.append(row)
-wb.save("output.xlsx")
-```
-
-#### XLSX → CSV
-```python
-# Cài đặt: pip install openpyxl
-import csv
-from openpyxl import load_workbook
-
-wb = load_workbook("input.xlsx")
-ws = wb.active
-with open("output.csv", "w", encoding="utf-8", newline="") as f:
-    writer = csv.writer(f)
-    for row in ws.iter_rows(values_only=True):
-        writer.writerow(row)
-```
-
-#### XML → JSON
-```python
-import json
-import xml.etree.ElementTree as ET
-
-def xml_to_dict(element):
-    result = {}
-    for child in element:
-        if len(child) > 0:
-            result[child.tag] = xml_to_dict(child)
-        else:
-            result[child.tag] = child.text
-    return result
-
-tree = ET.parse("input.xml")
-data = xml_to_dict(tree.getroot())
-
-with open("output.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
-```
-
-### 🖼️ Image Conversions (dùng Python)
-
-#### Chuyển đổi giữa PNG, JPG, WEBP, BMP, TIFF
-```python
-# Cài đặt: pip install Pillow
-from PIL import Image
-
-img = Image.open("input.png")
-# Nếu chuyển sang JPG, cần convert RGB (bỏ alpha channel)
-if img.mode in ("RGBA", "LA", "P"):
-    img = img.convert("RGB")
-img.save("output.jpg", quality=95)
-# Hoặc: img.save("output.webp"), img.save("output.bmp"), img.save("output.tiff")
-```
-
-#### SVG → PNG (dùng cairosvg)
-```python
-# Cài đặt: pip install cairosvg
-import cairosvg
-cairosvg.svg2png(url="input.svg", write_to="output.png", scale=2)
-```
-
-## Tùy Chọn Nâng Cao
-
-### Custom Styling cho DOCX
-```bash
-# Dùng reference doc để áp dụng style tùy chỉnh
-pandoc input.md -f gfm -t docx -o output.docx --reference-doc=template.docx
-```
-
-### Table of Contents (Mục lục)
-```bash
-# Thêm mục lục tự động
-pandoc input.md -f gfm -o output.pdf --toc --toc-depth=3 --pdf-engine=xelatex
-pandoc input.md -f gfm -t docx -o output.docx --toc --toc-depth=3
-```
-
-### Đánh số heading
-```bash
-pandoc input.md -f gfm -o output.pdf --number-sections --pdf-engine=xelatex
-```
-
-### Font tiếng Việt cho PDF
-```bash
-pandoc input.md -f gfm -o output.pdf --pdf-engine=xelatex \
-  -V mainfont="Noto Sans" \
-  -V sansfont="Noto Sans" \
-  -V monofont="Noto Sans Mono" \
-  -V geometry:margin=2cm
-```
-
-### Batch Convert (Chuyển đổi hàng loạt)
-```bash
-# Chuyển tất cả .md sang .docx trong thư mục
-for f in *.md; do
-  pandoc "$f" -f gfm -t docx -o "${f%.md}.docx" --standalone
-done
-
-# Chuyển tất cả .docx sang .md
-for f in *.docx; do
-  pandoc "$f" -f docx -t gfm -o "${f%.docx}.md" --wrap=none
-done
-```
+### Metadata
+- Giữ lại metadata gốc nếu có (title, author, date)
+- Thêm vào header của output format tương ứng:
+  - Markdown: YAML frontmatter `---`
+  - HTML: `<meta>` tags
+  - LaTeX: `\title{}`, `\author{}`, `\date{}`
 
 ## Quy Tắc Quan Trọng
 
-1. **Luôn kiểm tra file nguồn tồn tại** trước khi chuyển đổi
-2. **Giữ lại file gốc** — không ghi đè file nguồn
-3. **Encoding UTF-8** — luôn dùng UTF-8 cho tiếng Việt
-4. **Thông báo kết quả** — cho người dùng biết file đã được tạo ở đâu
-5. **Xử lý lỗi** — nếu công cụ chưa cài, hướng dẫn cài đặt
-6. **PDF input** — PDF cần xử lý đặc biệt, không dùng Pandoc trực tiếp
-7. **Ưu tiên Pandoc** cho document conversions vì nó đáng tin cậy nhất
-8. **Ưu tiên Python** cho data conversions (CSV, JSON, YAML, XML, XLSX)
-9. **Hỏi rõ** nếu không chắc định dạng đích mong muốn
+1. **KHÔNG BAO GIỜ dùng sandbox** — xử lý mọi thứ trực tiếp trong chat
+2. **KHÔNG BAO GIỜ chạy lệnh shell** — không pandoc, không python script
+3. **KHÔNG BAO GIỜ yêu cầu cài đặt tool** — skill này độc lập hoàn toàn
+4. **Đọc nội dung từ system context** — file upload đã được trích xuất sẵn
+5. **Xuất kết quả trực tiếp** — trong code block hoặc tạo file artifact để download
+6. **Giữ nguyên nội dung** — không thêm, không bớt, không sửa nội dung gốc
+7. **Giữ cấu trúc** — heading, list, table, bold/italic phải được preserve
+8. **Encoding UTF-8** — luôn luôn, đặc biệt quan trọng cho tiếng Việt
+9. **Hỏi rõ nếu mơ hồ** — nếu không rõ format đích, hỏi trước khi convert
+10. **Thông báo kết quả** — cho user biết đã convert xong, format gì, bao nhiêu nội dung
 
 ## Ví Dụ Sử Dụng
 
-**Người dùng:** "Chuyển file báo cáo.md sang docx"
-**Agent:** Chạy `pandoc báo_cáo.md -f gfm -t docx -o báo_cáo.docx --standalone`
+### Ví dụ 1: PDF → Markdown
+**User:** "Chuyển file báo cáo.pdf sang markdown"
+**Agent:** Đọc nội dung PDF từ system context → phân tích cấu trúc → format thành Markdown → xuất code block ```markdown
 
-**Người dùng:** "Convert tất cả file CSV trong thư mục sang JSON"
-**Agent:** Dùng Python script để batch convert CSV → JSON
+### Ví dụ 2: CSV → JSON
+**User:** Upload file data.csv, "Chuyển sang JSON"
+**Agent:** Đọc CSV từ context → parse headers và rows → tạo JSON array → xuất code block ```json
 
-**Người dùng:** "Xuất tài liệu này ra PDF với mục lục"
-**Agent:** Chạy `pandoc input.md -f gfm -o output.pdf --toc --pdf-engine=xelatex -V mainfont="Noto Sans"`
+### Ví dụ 3: Markdown → HTML
+**User:** Paste nội dung Markdown, "Export sang HTML"
+**Agent:** Parse Markdown syntax → chuyển thành HTML5 tags → wrap trong template → xuất code block ```html
+
+### Ví dụ 4: JSON → YAML
+**User:** Upload config.json, "Đổi sang YAML"
+**Agent:** Đọc JSON từ context → chuyển syntax sang YAML → xuất code block ```yaml
